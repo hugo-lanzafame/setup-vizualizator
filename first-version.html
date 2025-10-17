@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étape 1 - Setup Three.js</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            min-width: 250px;
+        }
+
+        #controls label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        #controls input[type="range"] {
+            width: 100%;
+        }
+
+        #controls span {
+            display: inline-block;
+            margin-left: 10px;
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        #controls h2 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        #add-monitor-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: #00ff00;
+            border: none;
+            border-radius: 5px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #add-monitor-btn:hover {
+            background: #00dd00;
+        }
+
+        .monitor-panel {
+            background: rgba(50, 50, 50, 0.9);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #00ff00;
+        }
+
+        .monitor-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background: #ff4444;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-btn:hover {
+            background: #ff0000;
+        }
+
+        .slider-group {
+            margin: 10px 0;
+        }
+
+        .slider-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .slider-group input {
+            width: 100%;
+        }
+
+        .slider-group span {
+            font-size: 11px;
+            color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <h1>🖥️ Gestionnaire d'écrans</h1>
+        
+        <button id="add-monitor-btn">➕ Ajouter un écran</button>
+        
+        <div id="monitors-list">
+            <!-- Les contrôles des écrans apparaîtront ici -->
+        </div>
+    </div>
+
+    <!-- Import de Three.js depuis un CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        console.log("🎮 Three.js chargé :", THREE.REVISION);
+        
+        // ========================================
+        // 1️⃣ CRÉER LA SCÈNE
+        // ========================================
+        // La scène = le "monde" où on va placer nos objets 3D
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x333333); // Fond gris foncé
+        console.log("✅ Scène créée");
+
+        // ========================================
+        // 💡 ÉCLAIRAGE
+        // ========================================
+        // Lumière ambiante = éclaire tout uniformément (comme le jour nuageux)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9); // Blanc, intensité 90%
+        scene.add(ambientLight);
+
+        // Lumière directionnelle = comme le soleil (vient d'une direction)
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 1, 5); // Position de la "source"
+
+        directionalLight.castShadow = true; // Active les ombres pour cette lumière
+
+        // Configure la qualité des ombres (optionnel mais améliore le rendu)
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+
+        scene.add(directionalLight);
+
+        console.log("✅ Lumières ajoutées");
+        
+        // ========================================
+        // 2️⃣ CRÉER LA CAMÉRA
+        // ========================================
+        // La caméra = nos "yeux" dans la scène 3D
+        // PerspectiveCamera(angle de vue, ratio largeur/hauteur, near, far)
+        const camera = new THREE.PerspectiveCamera(
+            75,                                      // Angle de vue (field of view)
+            window.innerWidth / window.innerHeight,  // Ratio de l'écran
+            0.1,                                     // Near : objets plus proches sont invisibles
+            1000                                     // Far : objets plus loin sont invisibles
+        );
+        
+        // Positionner la caméra (x, y, z)
+        // x = gauche/droite, y = haut/bas, z = avant/arrière
+        camera.position.set(0, 3, 10); // x, y, z
+        camera.lookAt(0, 0, 0);        // Regarde le centre
+        console.log("✅ Caméra créée et positionnée");
+        
+        // ========================================
+        // 3️⃣ CRÉER LE RENDERER
+        // ========================================
+        // Le renderer = celui qui "dessine" la scène sur l'écran
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Ombres douces
+
+        // Ajouter le canvas du renderer au HTML
+        document.body.appendChild(renderer.domElement);
+
+        console.log("✅ Renderer créé et ajouté au DOM");
+
+        // ========================================
+        // 🖱️ CONTRÔLES ORBITAUX
+        // ========================================
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Options (optionnelles mais utiles)
+        controls.enableDamping = true;  // Smooth motion (inertie)
+        controls.dampingFactor = 0.05;  // Vitesse du smooth
+        controls.enableZoom = true;      // Active le zoom (molette)
+
+        console.log("✅ OrbitControls ajoutés");
+
+        // ========================================
+        // 🏢 SOL (pour voir l'ombre)
+        // ========================================
+        const floorGeometry = new THREE.PlaneGeometry(20, 20);
+        const floorMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x2a2a2a,
+            roughness: 0.8
+        });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2; // Rotation de 90° pour être horizontal
+        floor.position.y = -3;           // En dessous de l'écran
+        floor.receiveShadow = true;      // ⭐ Reçoit les ombres
+        scene.add(floor);
+
+        console.log("✅ Sol ajouté");
+        
+        // ========================================
+        // 4️⃣ BOUCLE D'ANIMATION
+        // ========================================
+        // Cette fonction tourne en boucle ~60 fois par seconde
+        function animate() {
+            requestAnimationFrame(animate); // Rappelle la fonction
+
+            // ⭐ ROTATION DU CUBE
+            // cube.rotation.x += 0.01;
+            // cube.rotation.y += 0.01;
+            
+            // ⭐ Mettre à jour les contrôles (important pour le damping)
+            controls.update();
+
+            // On "rend" la scène vue depuis la caméra
+            renderer.render(scene, camera);
+        }
+        
+        // Lancer l'animation
+        animate();
+        console.log("✅ Boucle d'animation lancée");
+
+        // ========================================
+        // 🏭 FONCTION : Créer un écran
+        // ========================================
+        function createMonitor(specs) {
+            // Specs = objet avec les dimensions
+            const width = specs.width;
+            const height = specs.height;
+            const bezel = specs.bezelThickness || 0.1;
+            const depth = specs.depth || 0.3;
+            
+            // Groupe qui contiendra toutes les parties
+            const group = new THREE.Group();
+            
+            // 🔲 Cadre
+            const frameGeometry = new THREE.BoxGeometry(
+                width + bezel * 2,
+                height + bezel * 2,
+                depth
+            );
+            const frameMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a1a,
+                roughness: 0.5,
+                metalness: 0.3
+            });
+            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+            frame.castShadow = true;
+            group.add(frame);
+            
+            // 📺 Écran actif
+            const displayGeometry = new THREE.BoxGeometry(width, height, 0.05);
+            const displayMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a3a5a,
+                roughness: 0.2,
+                metalness: 0.1
+            });
+            const display = new THREE.Mesh(displayGeometry, displayMaterial);
+            display.position.z = depth / 2 + 0.03;
+            display.castShadow = true;
+            group.add(display);
+            
+            // 🦵 Pied
+            const standGeometry = new THREE.CylinderGeometry(0.3, 0.4, 2, 16);
+            const standMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x2a2a2a,
+                roughness: 0.4,
+                metalness: 0.6
+            });
+            const stand = new THREE.Mesh(standGeometry, standMaterial);
+            stand.position.y = -(height / 2 + 1);
+            stand.castShadow = true;
+            group.add(stand);
+            
+            return group; // ⭐ Retourne le groupe complet
+        }
+
+        // ========================================
+        // 📊 SYSTÈME DE GESTION DES ÉCRANS
+        // ========================================
+
+        let monitors = []; // Tableau qui contiendra tous les écrans
+        let monitorCounter = 0; // Pour générer des IDs uniques
+
+        // Fonction pour ajouter un écran
+        function addMonitor(specs) {
+            const id = monitorCounter++;
+            
+            // Créer l'écran 3D
+            const monitor = createMonitor(specs);
+            monitor.position.set(specs.x || 0, specs.y || 0, specs.z || 0);
+            scene.add(monitor);
+            
+            // Stocker les infos
+            const monitorData = {
+                id: id,
+                mesh: monitor,
+                specs: specs
+            };
+            monitors.push(monitorData);
+            
+            // Créer l'interface HTML pour cet écran
+            createMonitorControls(monitorData);
+            
+            console.log(`✅ Écran ${id} ajouté`);
+            return monitorData;
+        }
+
+        // Fonction pour supprimer un écran
+        function removeMonitor(id) {
+            const index = monitors.findIndex(m => m.id === id);
+            if (index === -1) return;
+            
+            const monitorData = monitors[index];
+            
+            // Retirer de la scène 3D
+            scene.remove(monitorData.mesh);
+            
+            // Retirer du tableau
+            monitors.splice(index, 1);
+            
+            // Retirer l'interface HTML
+            const controlPanel = document.getElementById(`monitor-${id}`);
+            if (controlPanel) controlPanel.remove();
+            
+            console.log(`✅ Écran ${id} supprimé`);
+        }
+
+        // ========================================
+        // 🎨 CRÉER L'INTERFACE HTML D'UN ÉCRAN
+        // ========================================
+        function createMonitorControls(monitorData) {
+            const panel = document.createElement('div');
+            panel.className = 'monitor-panel';
+            panel.id = `monitor-${monitorData.id}`;
+            
+            panel.innerHTML = `
+                <h3>
+                    🖥️ Écran ${monitorData.id}
+                    <button class="delete-btn" onclick="removeMonitor(${monitorData.id})">🗑️ Supprimer</button>
+                </h3>
+                
+                <div class="slider-group">
+                    <label>Position X</label>
+                    <input type="range" id="m${monitorData.id}-x" min="-10" max="10" value="${monitorData.specs.x || 0}" step="0.1">
+                    <span id="m${monitorData.id}-x-val">${monitorData.specs.x || 0}</span>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Position Y</label>
+                    <input type="range" id="m${monitorData.id}-y" min="-5" max="8" value="${monitorData.specs.y || 0}" step="0.1">
+                    <span id="m${monitorData.id}-y-val">${monitorData.specs.y || 0}</span>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Rotation Y</label>
+                    <input type="range" id="m${monitorData.id}-rot" min="-180" max="180" value="0" step="1">
+                    <span id="m${monitorData.id}-rot-val">0°</span>
+                </div>
+            `;
+            
+            document.getElementById('monitors-list').appendChild(panel);
+            
+            // Connecter les événements
+            document.getElementById(`m${monitorData.id}-x`).addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                monitorData.mesh.position.x = val;
+                document.getElementById(`m${monitorData.id}-x-val`).textContent = val.toFixed(1);
+            });
+            
+            document.getElementById(`m${monitorData.id}-y`).addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                monitorData.mesh.position.y = val;
+                document.getElementById(`m${monitorData.id}-y-val`).textContent = val.toFixed(1);
+            });
+            
+            document.getElementById(`m${monitorData.id}-rot`).addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                monitorData.mesh.rotation.y = val * (Math.PI / 180);
+                document.getElementById(`m${monitorData.id}-rot-val`).textContent = val + '°';
+            });
+        }
+
+        // ========================================
+        // 🔘 BOUTON AJOUTER
+        // ========================================
+        document.getElementById('add-monitor-btn').addEventListener('click', () => {
+            addMonitor({
+                width: 5.3,
+                height: 3.0,
+                bezelThickness: 0.1,
+                depth: 0.3,
+                x: Math.random() * 6 - 3, // Position aléatoire
+                y: 0,
+                z: 0
+            });
+        });
+
+        // Ajouter 2 écrans de départ
+        addMonitor({ width: 5.3, height: 3.0, x: -4, y: 0 });
+        addMonitor({ width: 8.0, height: 3.6, x: 3, y: 0 });
+        
+        // ========================================
+        // 5️⃣ RESPONSIVE
+        // ========================================
+        // Si la fenêtre change de taille, on adapte
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        console.log("🎉 Setup terminé ! Prêt pour ajouter des objets 3D");
+    </script>
+</body>
+</html>

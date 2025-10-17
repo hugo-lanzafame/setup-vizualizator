@@ -1,0 +1,40 @@
+{
+  "name": "setupvizualizator",
+  "version": "1.0.0",
+  "description": "Monitor Setup Simulator 3D",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "monitor",
+    "simulator",
+    "3d",
+    "visualization",
+    "setup",
+    "desk",
+    "threejs",
+    "svelte",
+    "threlte"
+  ],
+  "author": "Hugo Lanzafame",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hugo-lanzafame/setup-vizualizator.git"
+  },
+  "homepage": "https://github.com/hugo-lanzafame/setup-vizualizator#readme",
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "svelte": "^5.39.6",
+    "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "@threlte/core": "^8.1.5",
+    "@threlte/extras": "^9.5.4",
+    "lucide-svelte": "^0.545.0",
+    "three": "^0.180.0"
+  }
+}
