@@ -22,9 +22,35 @@ A realistic 3D simulator to visualize and compare monitor setups on your desk. P
 
 ### Prerequisites
 
-- **Node.js** 18+ and npm
+- **Node.js** 18+ and npm (for local development)
+- **Docker** and **Docker Compose** (for containerized deployment)
 
 ### Installation
+
+#### Option 1: Docker
+
+**Use this if:** You want a quick start without installing Node.js, need consistent environments across different machines, or deploying to production.
+
+```bash
+# Clone the repository
+git clone https://github.com/hugo-lanzafame/setup-vizualizator
+cd setup-vizualizator
+
+# Build and run with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the container
+docker-compose down
+```
+
+Open [http://localhost:8080](http://localhost:8080) in your browser.
+
+#### Option 2: Local Development
+
+**Use this if:** You're actively developing features, need hot reload performance, or prefer working directly with npm packages.
 
 ```bash
 # Clone the repository
@@ -74,21 +100,38 @@ The sidebar offers two adjustment modes:
 ## Project Structure
 
 ```
-src/
-├── lib/
-│   ├── components/
-│   │   ├── Scene.svelte                    # 3D scene setup (camera, lights)
-│   │   ├── Panel.svelte                    # Main sidebar UI
-│   │   ├── PanelConfiguration.svelte       # Monitor list and add/remove
-│   │   ├── PanelControls.svelte            # Position and screen adjustments
-│   │   ├── PanelConfigurationModal.svelte  # Add monitor modal
-│   │   └── models/
-│   ├── stores/
-│   │   └── monitors.js                     # Monitor state management
-│   └── data/                               # Components data configs
-├── App.svelte                              # Root component
-├── main.js                                 # Entry point
-└── styles.css                              # Global styles
+.
+├── src/
+│   ├── lib/
+│   │   ├── components/
+│   │   │   ├── Scene.svelte                    # 3D scene setup (camera, lights)
+│   │   │   ├── Panel.svelte                    # Main sidebar UI
+│   │   │   ├── PanelConfiguration.svelte       # Monitor list and add/remove
+│   │   │   ├── PanelControls.svelte            # Position and screen adjustments
+│   │   │   ├── PanelConfigurationModal.svelte  # Add monitor modal
+│   │   │   └── models/                         # 3D models (Desk, Monitor, etc.)
+│   │   ├── stores/
+│   │   │   └── monitors.js                     # Monitor state management
+│   │   └── data/                               # Presets and configurations
+│   ├── App.svelte                              # Root component
+│   ├── main.js                                 # Application entry point
+│   └── styles.css                              # Global styles
+├── public/
+├── .git/                                       # Git repository
+├── .gitignore                                  # Git ignore rules
+├── .dockerignore                               # Docker ignore rules
+├── Dockerfile                                  # Multi-stage production build
+├── docker-compose.yml                          # Docker Compose configuration
+├── nginx.conf                                  # Nginx server configuration
+├── vite.config.js                              # Vite build configuration
+├── svelte.config.js                            # Svelte compiler configuration
+├── jsconfig.json                               # JavaScript/IDE configuration
+├── package.json                                # NPM dependencies and scripts
+├── package-lock.json                           # NPM lock file
+├── index.html                                  # HTML entry point
+├── first-version.html                          # Legacy HTML version
+├── LICENSE.md                                  # MIT License
+└── README.md                                   # This file
 ```
 
 ## Technical Details
@@ -102,7 +145,6 @@ Monitor dimensions are calculated from diagonal size and aspect ratio:
 // Example: 24" 16:9 monitor
 diagonal: 24 inches
 width: ~53cm → 5.3 units
-height: ~30cm → 3.0 units
 ```
 
 ## Tech Stack
